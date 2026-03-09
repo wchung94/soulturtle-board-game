@@ -1,5 +1,5 @@
 # soulturtle-board-game
-Monte Carlo simulation of SoulTurtles The Boardgame
+Monte Carlo simulation of SoulTurtles The Boardgame to find the optimal parameters for balanced game.
 
 ## Project structure
 
@@ -22,7 +22,7 @@ soulturtle/
 ## Installation
 
 ```bash
-pip install -e .
+uv run python -m soulturtle
 ```
 
 ## Usage
@@ -38,9 +38,9 @@ Results after 1000 simulations:
 
 Player            Wins   Win Rate  Avg Souls
 ---------------------------------------------
-Alice              413      41.3%       0.00
-Bob                328      32.8%       0.00
-Carol              259      25.9%       0.00
+Wing              413      41.3%       0.00
+Milan             328      32.8%       0.00
+Rody              259      25.9%       0.00
 
 Average turns per game: 6.7
 ```
@@ -50,10 +50,10 @@ Average turns per game: 6.7
 ```python
 from soulturtle import Simulator
 
-sim = Simulator(player_names=["Alice", "Bob"], seed=0)
+sim = Simulator(player_names=["Milan", "Rody"], seed=0)
 stats = sim.run(num_simulations=10_000)
 
-print(stats.win_rates)      # {'Alice': 0.573, 'Bob': 0.427}
+print(stats.win_rates)      # {'Milan': 0.573, 'Rody': 0.427}
 print(stats.avg_turn_count) # ~6.8
 ```
 
