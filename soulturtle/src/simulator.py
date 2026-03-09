@@ -6,9 +6,9 @@ import random
 from collections import Counter
 from dataclasses import dataclass, field
 
-from .board import Board
+from .components.board import Board
 from .game import Game, GameResult
-from .player import Player
+from .components.player import Player
 
 
 @dataclass

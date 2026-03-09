@@ -3,8 +3,8 @@
 import random
 from dataclasses import dataclass, field
 
-from .board import Board, SpaceType
-from .player import Player
+from .components.board import Board, SpaceType
+from .components.player import Player
 
 
 @dataclass

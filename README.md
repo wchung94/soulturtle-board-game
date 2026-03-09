@@ -5,16 +5,18 @@ Monte Carlo simulation of SoulTurtles The Boardgame
 
 ```
 soulturtle/
-  board.py      – Board and Space definitions
-  player.py     – Player model
-  game.py       – Game engine (single play-through)
-  simulator.py  – Monte Carlo simulator (many games)
-  __main__.py   – CLI entry point
-tests/
-  test_board.py
-  test_player.py
-  test_game.py
-  test_simulator.py
+  src/
+    components/
+      board.py      – Board and Space definitions
+      player.py     – Player model
+      game.py       – Game engine (single play-through)
+      simulator.py  – Monte Carlo simulator (many games)
+      __main__.py   – CLI entry point
+  tests/
+    test_board.py
+    test_player.py
+    test_game.py
+    test_simulator.py
 ```
 
 ## Installation
@@ -28,7 +30,7 @@ pip install -e .
 ### Run a simulation from the command line
 
 ```bash
-python -m soulturtle Alice Bob Carol --num-simulations 1000 --seed 42
+python -m soulturtle Milan Rody Wing --num-simulations 1000 --seed 42
 ```
 
 ```
