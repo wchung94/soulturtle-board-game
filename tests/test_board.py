@@ -1,66 +1,88 @@
-"""Tests for the Board and Space classes."""
+"""Tests for the hexagonal board implementation."""
 
-import pytest
-
-from soulturtle.board import Board, Space, SpaceType
+from src.components.board import Board, HexCoord, SpaceType
 
 
-def test_default_board_size() -> None:
-    board = Board()
-    assert board.size == 30
+def test_generate_hex_board_returns_expected_unique_coordinates() -> None:
+    sides = 4
+    coords = Board._generate_hex_board(sides)
+
+    assert len(coords) == 3 * sides * (sides - 1) + 1
+    assert len(coords) == len(set(coords))
+    assert all(max(abs(coord.q), abs(coord.r), abs(coord.q + coord.r)) <= sides - 1 for coord in coords)
 
 
-def test_first_space_is_start() -> None:
-    board = Board()
-    assert board.get_space(0).space_type == SpaceType.START
+def test_default_board_marks_six_corners_as_start_and_center_as_finish() -> None:
+    board = Board(sides=5)
+    start_spaces = [space for space in board._spaces if space.space_type == SpaceType.START]
+    finish_spaces = [space for space in board._spaces if space.space_type == SpaceType.FINISH]
+
+    assert len(start_spaces) == 6
+    assert len(finish_spaces) == 1
+    assert finish_spaces[0].hex_coord == HexCoord(0, 0)
+
+    expected_corner_coords = {
+        HexCoord(4, -4),
+        HexCoord(4, 0),
+        HexCoord(0, 4),
+        HexCoord(-4, 4),
+        HexCoord(-4, 0),
+        HexCoord(0, -4),
+    }
+    assert {space.hex_coord for space in start_spaces} == expected_corner_coords
 
 
-def test_last_space_is_finish() -> None:
-    board = Board()
-    assert board.get_space(30).space_type == SpaceType.FINISH
+def test_action_spaces_have_effect_ids_in_expected_range() -> None:
+    board = Board(sides=4)
+    action_spaces = [space for space in board._spaces if space.space_type == SpaceType.ACTION]
+
+    assert action_spaces
+    assert all(space.effect > 0 for space in action_spaces)
 
 
-def test_get_space_clamps_to_finish() -> None:
-    board = Board()
-    space = board.get_space(9999)
-    assert space.space_type == SpaceType.FINISH
+def test_get_neighbors_returns_adjacent_hex_indices_for_center() -> None:
+    board = Board(sides=3)
+    center_index = next(
+        space.index
+        for space in board._spaces
+        if space.hex_coord == HexCoord(0, 0)
+    )
+
+    neighbors = board.get_neighbors(center_index)
+    neighbor_coords = {board.get_space(index).hex_coord for index in neighbors}
+
+    assert len(neighbors) == 6
+    assert neighbor_coords == {
+        HexCoord(1, 0),
+        HexCoord(-1, 0),
+        HexCoord(0, 1),
+        HexCoord(0, -1),
+        HexCoord(1, -1),
+        HexCoord(-1, 1),
+    }
 
 
-def test_boost_space_moves_player_forward() -> None:
-    space = Space(index=5, space_type=SpaceType.BOOST, effect=3)
-    new_pos, soul_delta = space.apply(5)
-    assert new_pos == 8
-    assert soul_delta == 0
+def test_get_neighbors_returns_three_neighbors_for_a_corner() -> None:
+    board = Board(sides=4)
+    corner_index = next(
+        space.index
+        for space in board._spaces
+        if space.hex_coord == HexCoord(3, -3)
+    )
+
+    neighbors = board.get_neighbors(corner_index)
+    neighbor_coords = {board.get_space(index).hex_coord for index in neighbors}
+
+    assert len(neighbors) == 3
+    assert neighbor_coords == {
+        HexCoord(2, -3),
+        HexCoord(3, -2),
+        HexCoord(2, -2),
+    }
 
 
-def test_penalty_space_moves_player_back() -> None:
-    space = Space(index=10, space_type=SpaceType.PENALTY, effect=2)
-    new_pos, soul_delta = space.apply(10)
-    assert new_pos == 8
-    assert soul_delta == 0
+def test_get_neighbors_returns_empty_list_for_invalid_index() -> None:
+    board = Board(sides=3)
 
-
-def test_penalty_space_does_not_go_below_zero() -> None:
-    space = Space(index=1, space_type=SpaceType.PENALTY, effect=5)
-    new_pos, _ = space.apply(1)
-    assert new_pos == 0
-
-
-def test_warp_space_teleports_player() -> None:
-    space = Space(index=8, space_type=SpaceType.WARP, warp_target=18)
-    new_pos, _ = space.apply(8)
-    assert new_pos == 18
-
-
-def test_normal_space_returns_soul_delta() -> None:
-    space = Space(index=3, space_type=SpaceType.NORMAL, effect=2)
-    new_pos, soul_delta = space.apply(3)
-    assert new_pos == 3
-    assert soul_delta == 2
-
-
-def test_custom_board() -> None:
-    spaces = [Space(i) for i in range(6)]
-    spaces[5].space_type = SpaceType.FINISH
-    board = Board(spaces=spaces)
-    assert board.size == 5
+    assert board.get_neighbors(-1) == []
+    assert board.get_neighbors(len(board._spaces)) == []
