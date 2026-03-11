@@ -9,9 +9,10 @@ class SpaceType(Enum):
     """"Type of space on the board, affecting player movement and soul tokens.
     auto() is used to automatically assign unique values to each enum member."""
     NORMAL = auto()
-    EVENT = auto()
-    LOCATION = auto()
-    ENTITY = auto()
+    # EVENT = auto()
+    # LOCATION = auto()
+    # ENTITY = auto()
+    ACTION = auto()
     START = auto()
     FINISH = auto()
 
@@ -28,8 +29,7 @@ class Space:
 
     index: int
     space_type: SpaceType = SpaceType.NORMAL
-    effect: int = 0
-    warp_target: int | None = None
+    effect: int = 0 # define which Event/Location/Entity card to draw when space type is ACTION
     hex_coord: HexCoord | None = None
 
 
@@ -56,7 +56,6 @@ class Board:
             for r in range(-n + 1, n):
                 if max(abs(q), abs(r), abs(q + r)) <= n - 1:
                     coords.append(HexCoord(q, r))
-        
         return coords
 
     def _default_board(self, sides: int) -> list[Space]:
@@ -77,41 +76,24 @@ class Board:
             HexCoord(0, -radius),         # top left
         ]
         
+        # Set the center hexagon as the FINISH space
+        center_coord = HexCoord(0, 0)
+        
+        # Set space types based on coordinates
         for space in spaces:
             if space.hex_coord in corner_coords:
                 space.space_type = SpaceType.START
-        
-        spaces[-1].space_type = SpaceType.FINISH
-
-        # Add boost spaces distributed throughout the board
-        # Place approximately 6 boost spaces at regular intervals
-        boost_step = max(1, num_spaces // 12)
-        for i in range(6):
-            idx = 12 + i * boost_step * 2
-            if idx < num_spaces - 1 and spaces[idx].space_type == SpaceType.NORMAL:
-                spaces[idx].space_type = SpaceType.EVENT
-                spaces[idx].effect = 3
-
-        # Add penalty spaces
-        # Place approximately 6 penalty spaces at regular intervals
-        penalty_step = max(1, num_spaces // 12)
-        for i in range(6):
-            idx = 10 + i * penalty_step * 2
-            if idx < num_spaces - 1 and spaces[idx].space_type == SpaceType.NORMAL:
-                spaces[idx].space_type = SpaceType.LOCATION
-                spaces[idx].effect = 2
-
-        # Add warp spaces
-        if num_spaces > 20:
-            if spaces[8].space_type == SpaceType.NORMAL:
-                spaces[8].space_type = SpaceType.ENTITY
-                spaces[8].warp_target = min(20, num_spaces - 1)
-
-        if num_spaces > 60:
-            idx = num_spaces // 2
-            if spaces[idx].space_type == SpaceType.NORMAL:
-                spaces[idx].space_type = SpaceType.ENTITY
-                spaces[idx].warp_target = min(idx + 18, num_spaces - 1)
+            elif space.hex_coord == center_coord:
+                space.space_type = SpaceType.FINISH
+            # Add ACTION spaces distributed throughout the board
+            # Place 50/50 ACTION / NORMAL  spaces at regular intervals
+            else:
+                random_value = (space.index * 7) % 100  # Deterministic pseudo-random value based on index
+                if random_value < 50:  # 50% chance to become an ACTION space
+                    space.space_type = SpaceType.ACTION
+                    space.effect = random_value % 3 + 1  # Placeholder effect ID (1,2,3) for ACTION spaces
+                else:
+                    space.space_type = SpaceType.NORMAL
 
         return spaces
 
@@ -160,9 +142,7 @@ class Board:
 
         symbols = {
             SpaceType.NORMAL: ".",
-            SpaceType.EVENT: "E",
-            SpaceType.LOCATION: "L",
-            SpaceType.ENTITY: "N",
+            SpaceType.ACTION: "A",
             SpaceType.START: "S",
             SpaceType.FINISH: "F",
         }
