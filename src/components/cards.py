@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum, auto
-from .types import PlayerLike
+from .playerlike import PlayerLike
 
 class card_type(Enum):
     """Enumeration for card types."""
